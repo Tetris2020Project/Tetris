@@ -34,7 +34,7 @@ public class Tile : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer == null)
         {
-            Debug.LogError("You need to SpriteRenderer for Block");
+            Debug.LogError("errror");
         }
     }
 }

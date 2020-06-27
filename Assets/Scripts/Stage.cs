@@ -13,7 +13,7 @@ public class Stage : MonoBehaviour
     public GameObject gameoverPanel;
 
     [Header("Game Settings")]
-    [Range(4, 40)] 
+    [Range(4, 40)]
     public int boardWidth = 10;
     [Range(5, 20)]
     public int boardHeight = 20;
@@ -22,11 +22,17 @@ public class Stage : MonoBehaviour
     private int halfWidth;
     private int halfHeight;
     private float nextFallTime;
-   
+    float time, starTime;
+
+    public GameObject imageObj;
+    public int block_num; //다음 블록의 숫자
+    public Image block_img;
 
     private void Start()
     {
         Score.currentScore = 0;// 현재 점수
+        Timer.timerTxt = "";
+
         gameoverPanel.SetActive(false);
         halfWidth = Mathf.RoundToInt(boardWidth * 0.5f);
         halfHeight = Mathf.RoundToInt(boardHeight * 0.5f);
@@ -41,14 +47,16 @@ public class Stage : MonoBehaviour
             col.transform.position = new Vector3(0, halfHeight - i, 0);
             col.transform.parent = boardNode;// 보드노드의 자식으로 만들어 줌
         }
-        MakeBlock();
+        block_num = Random.Range(0, 7); //0부터 6까지 중 하나의 숫자가 임의로 출현
+        MakeBlock(block_num);
+        block_num = Random.Range(0, 7); //0부터 6까지 중 하나의 숫자가 임의로 출현
     }
 
     void Update() //실시간 이동
     {
-        if(gameoverPanel.activeSelf)
+        if (gameoverPanel.activeSelf)
         {
-            if(Input.GetKeyDown(KeyCode.Escape))
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
                 UnityEngine.SceneManagement.SceneManager.LoadScene(0);
             }
@@ -96,7 +104,7 @@ public class Stage : MonoBehaviour
                 MoveBlock(b, isRotate); //테트로미노를 이동
             }
         }
-        
+
     }
 
     bool Border(Transform root) //경계선에 위치하면 true, 그렇지 않으면 false
@@ -140,7 +148,9 @@ public class Stage : MonoBehaviour
             {
                 AddToBoard(tetrominoNode);
                 ClearBlock();
-                MakeBlock();
+
+                MakeBlock(block_num);
+                block_num = Random.Range(0, 7); //0부터 6까지 중 하나의 숫자가 임의로 출현
             }
 
             if (!Border(tetrominoNode))
@@ -221,6 +231,7 @@ public class Stage : MonoBehaviour
             }
         }
     }
+
     // ===== 기본셋팅 ===== //
     // 1. 타일 생성하기
     Tile MakeTile(Transform parent, Vector2 position, Color color, int order = 1)
@@ -256,26 +267,30 @@ public class Stage : MonoBehaviour
             }
         }
 
+        Color32 e_color;
+        e_color = new Color32(83, 97, 115, 255);
+
         // 좌우 테두리
-        color.a = 1.0f;
         for (int y = halfHeight; y > -halfHeight; --y)
         {
-            MakeTile(backgroundNode, new Vector2(-halfWidth - 1, y), color, 0);
-            MakeTile(backgroundNode, new Vector2(halfWidth, y), color, 0);
+            MakeTile(backgroundNode, new Vector2(-halfWidth - 1, y), e_color, 0);
+            MakeTile(backgroundNode, new Vector2(halfWidth, y), e_color, 0);
         }
 
         // 아래 테두리
         for (int x = -halfWidth - 1; x <= halfWidth; ++x)
         {
-            MakeTile(backgroundNode, new Vector2(x, -halfHeight), color, 0);
+            MakeTile(backgroundNode, new Vector2(x, -halfHeight), e_color, 0);
         }
     }
 
     // 3. 블록 생성하기
-    void MakeBlock()
+    void MakeBlock(int blkno)
     {
-        int index = Random.Range(0, 7); //0부터 6까지 중 하나의 숫자가 임의로 출현
+        int index = block_num;
+        int bomb_pb = Random.Range(0, 100);
         Color32 color = Color.white;
+        Color32 bomb_color = Color.black;
 
         //기본 위치 지정
         tetrominoNode.rotation = Quaternion.identity;
@@ -286,66 +301,172 @@ public class Stage : MonoBehaviour
             // I형 : 빨강색
             case 0:
                 color = new Color32(235, 51, 35, 255);
-                MakeTile(tetrominoNode, new Vector2(-2f, 0.0f), color);
-                MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), color);
-                MakeTile(tetrominoNode, new Vector2(0f, 0.0f), color);
-                MakeTile(tetrominoNode, new Vector2(1f, 0.0f), color);
+                if (bomb_pb <= 1)
+                {
+                    MakeTile(tetrominoNode, new Vector2(-2f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0.0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0.0f), color);
+                }
+                else
+                {
+                    MakeTile(tetrominoNode, new Vector2(-2f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0.0f), color);
+                }
                 break;
 
             // T형 : 주황색
             case 1:
                 color = new Color32(243, 168, 59, 255);
-                MakeTile(tetrominoNode, new Vector2(-1f, 0f), color);
-                MakeTile(tetrominoNode, new Vector2(0f, 0f), color);
-                MakeTile(tetrominoNode, new Vector2(1f, 0f), color);
-                MakeTile(tetrominoNode, new Vector2(0f, 1f), color);
+                if (bomb_pb <= 1)
+                {
+                    MakeTile(tetrominoNode, new Vector2(-1f, 0f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 1f), color);
+                }
+                else
+                {
+                    MakeTile(tetrominoNode, new Vector2(-1f, 0f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 1f), color);
+                }
                 break;
 
             // ㅁ형 : 노란색
             case 2:
                 color = new Color32(255, 253, 84, 255);
-                MakeTile(tetrominoNode, new Vector2(0f, 0f), color);
-                MakeTile(tetrominoNode, new Vector2(1f, 0f), color);
-                MakeTile(tetrominoNode, new Vector2(0f, 1f), color);
-                MakeTile(tetrominoNode, new Vector2(1f, 1f), color);
+                if (bomb_pb <= 2)
+                {
+                    MakeTile(tetrominoNode, new Vector2(0f, 0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 1f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 1f), bomb_color);
+                }
+                else
+                {
+                    MakeTile(tetrominoNode, new Vector2(0f, 0f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 1f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 1f), color);
+                }
                 break;
 
             // L형 : 초록색
             case 3:
                 color = new Color32(117, 250, 76, 255);
-                MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), color);
-                MakeTile(tetrominoNode, new Vector2(0f, 0.0f), color);
-                MakeTile(tetrominoNode, new Vector2(1f, 0.0f), color);
-                MakeTile(tetrominoNode, new Vector2(1f, 1.0f), color);
+                if (bomb_pb <= 2)
+                {
+                    MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0.0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0.0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 1.0f), bomb_color);
+                }
+                else
+                {
+                    MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 1.0f), color);
+                }
                 break;
 
             // J형 : 파란색
             case 4:
                 color = new Color32(0, 33, 245, 255);
-                MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), color);
-                MakeTile(tetrominoNode, new Vector2(0f, 0.0f), color);
-                MakeTile(tetrominoNode, new Vector2(1f, 0.0f), color);
-                MakeTile(tetrominoNode, new Vector2(-1f, 1.0f), color);
+                if (bomb_pb <= 1)
+                {
+                    MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0.0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0.0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(-1f, 1.0f), bomb_color);
+                }
+                else
+                {
+                    MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(-1f, 1.0f), color);
+                }
                 break;
 
             // 5형 : 하늘색
             case 5:
                 color = new Color32(115, 251, 253, 255);
-                MakeTile(tetrominoNode, new Vector2(-1f, -1f), color);
-                MakeTile(tetrominoNode, new Vector2(0f, -1f), color);
-                MakeTile(tetrominoNode, new Vector2(0f, 0f), color);
-                MakeTile(tetrominoNode, new Vector2(1f, 0f), color);
+                if (bomb_pb <= 1)
+                {
+                    MakeTile(tetrominoNode, new Vector2(-1f, -1f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(0f, -1f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0f), bomb_color);
+                }
+                else
+                {
+                    MakeTile(tetrominoNode, new Vector2(-1f, -1f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, -1f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0f), color);
+                }
                 break;
 
             // 2형 : 자주색
             case 6:
                 color = new Color32(155, 47, 246, 255);
-                MakeTile(tetrominoNode, new Vector2(-1f, 1f), color);
-                MakeTile(tetrominoNode, new Vector2(0f, 1f), color);
-                MakeTile(tetrominoNode, new Vector2(0f, 0f), color);
-                MakeTile(tetrominoNode, new Vector2(1f, 0f), color);
+                if (bomb_pb <= 2)
+                {
+                    MakeTile(tetrominoNode, new Vector2(-1f, 1f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 1f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0f), bomb_color);
+                }
+                else
+                {
+                    MakeTile(tetrominoNode, new Vector2(-1f, 1f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 1f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0f), color);
+                }
                 break;
         }
     }
+    public void NextBlock()
+    {
+        switch(block_num)
+        {
+            case 0:
+
+                break;
+
+            case 1:
+
+                break;
+
+            case 2:
+
+                break;
+
+            case 3:
+
+                break;
+
+            case 4:
+
+                break;
+
+            case 5:
+
+                break;
+
+            case 6:
+
+                break;
+
+
+        }
+    }
+
 }
 
