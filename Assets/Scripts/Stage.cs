@@ -32,15 +32,13 @@ public class Stage : MonoBehaviour
     private float nextFallTime;
     float time, starTime;
 
-    public GameObject imageObj;
     public int block_num; //다음 블록의 숫자
     public int index;   //MakeBlock()의 index를 다른 함수에서도 쓰도록 밖으로 빼옴
-    public Image block_img;
 
     private void Start()
     {
         Score.currentScore = 0;// 현재 점수
-        Timer.timerTxt = "";
+        Timer.timerTxt = ""; //타이머 선언
 
         gameoverPanel.SetActive(false);
         halfWidth = Mathf.RoundToInt(boardWidth * 0.5f);
@@ -480,7 +478,7 @@ public class Stage : MonoBehaviour
             // ㅁ형 : 노란색
             case 2:
                 color = new Color32(255, 253, 84, 255);
-                if (bomb_pb <= 2)
+                if (bomb_pb <= 1)
                 {
                     MakeTile(tetrominoNode, new Vector2(0f, 0f), bomb_color);
                     MakeTile(tetrominoNode, new Vector2(1f, 0f), bomb_color);
@@ -499,7 +497,7 @@ public class Stage : MonoBehaviour
             // L형 : 초록색
             case 3:
                 color = new Color32(117, 250, 76, 255);
-                if (bomb_pb <= 2)
+                if (bomb_pb <= 1)
                 {
                     MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), bomb_color);
                     MakeTile(tetrominoNode, new Vector2(0f, 0.0f), bomb_color);
@@ -556,7 +554,7 @@ public class Stage : MonoBehaviour
             // 2형 : 자주색
             case 6:
                 color = new Color32(155, 47, 246, 255);
-                if (bomb_pb <= 2)
+                if (bomb_pb <= 1)
                 {
                     MakeTile(tetrominoNode, new Vector2(-1f, 1f), bomb_color);
                     MakeTile(tetrominoNode, new Vector2(0f, 1f), bomb_color);
@@ -573,41 +571,5 @@ public class Stage : MonoBehaviour
                 break;
         }
     }
-    public void NextBlock()
-    {
-        switch(block_num)
-        {
-            case 0:
-
-                break;
-
-            case 1:
-
-                break;
-
-            case 2:
-
-                break;
-
-            case 3:
-
-                break;
-
-            case 4:
-
-                break;
-
-            case 5:
-
-                break;
-
-            case 6:
-
-                break;
-
-
-        }
-    }
-
 }
 
