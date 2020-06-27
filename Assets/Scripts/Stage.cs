@@ -442,10 +442,10 @@ public class Stage : MonoBehaviour
                 color = new Color32(235, 51, 35, 255);
                 if (bomb_pb <= 1)
                 {
-                    MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), color);
-                    MakeTile(tetrominoNode, new Vector2(0f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0.0f), bomb_color);
                     MakeTile(tetrominoNode, new Vector2(1f, 0.0f), bomb_color);
-                    MakeTile(tetrominoNode, new Vector2(2f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(2f, 0.0f), bomb_color);
                 }
                 else
                 {
@@ -461,10 +461,10 @@ public class Stage : MonoBehaviour
                 color = new Color32(243, 168, 59, 255);
                 if (bomb_pb <= 1)
                 {
-                    MakeTile(tetrominoNode, new Vector2(-1f, 0f), color);
+                    MakeTile(tetrominoNode, new Vector2(-1f, 0f), bomb_color);
                     MakeTile(tetrominoNode, new Vector2(0f, 0f), bomb_color);
-                    MakeTile(tetrominoNode, new Vector2(1f, 0f), color);
-                    MakeTile(tetrominoNode, new Vector2(0f, 1f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 1f), bomb_color);
                 }
                 else
                 {
@@ -494,7 +494,7 @@ public class Stage : MonoBehaviour
                 }
                 break;
 
-            // L형 : 초록색
+            // ㄴ형 : 초록색
             case 3:
                 color = new Color32(117, 250, 76, 255);
                 if (bomb_pb <= 1)
@@ -513,7 +513,7 @@ public class Stage : MonoBehaviour
                 }
                 break;
 
-            // J형 : 파란색
+            // ㄱ형 : 파란색
             case 4:
                 color = new Color32(0, 33, 245, 255);
                 if (bomb_pb <= 1)
@@ -532,7 +532,7 @@ public class Stage : MonoBehaviour
                 }
                 break;
 
-            // 5형 : 하늘색
+            // S형 : 하늘색
             case 5:
                 color = new Color32(115, 251, 253, 255);
                 if (bomb_pb <= 1)
