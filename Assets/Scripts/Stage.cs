@@ -18,6 +18,14 @@ public class Stage : MonoBehaviour
     [Range(5, 20)]
     public int boardHeight = 20;
     public float fallTime = 1.0f;
+    //블록 offset 변수
+    public Vector3Int[,] JLSTZ_OFFSET_DATA { get; private set; }
+    public Vector3Int[,] I_OFFSET_DATA { get; private set; }
+    public Vector3Int[,] O_OFFSET_DATA { get; private set; }
+    public bool isClockwise = false;
+    public int oldrotindex = 0, newrotindex = 0;
+    public bool[] tetrominoCycle = { true, true, true, true, true, true, true };
+    public int tetrominoCycleCount = 0;
 
     private int halfWidth;
     private int halfHeight;
@@ -26,6 +34,7 @@ public class Stage : MonoBehaviour
 
     public GameObject imageObj;
     public int block_num; //다음 블록의 숫자
+    public int index;   //MakeBlock()의 index를 다른 함수에서도 쓰도록 밖으로 빼옴
     public Image block_img;
 
     private void Start()
@@ -40,6 +49,65 @@ public class Stage : MonoBehaviour
         nextFallTime = Time.time + fallTime;
         Background();
 
+        //블록 offset 설정
+        JLSTZ_OFFSET_DATA = new Vector3Int[5, 4];
+        JLSTZ_OFFSET_DATA[0, 0] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[0, 1] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[0, 2] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[0, 3] = new Vector3Int(0, 0, 0);
+
+        JLSTZ_OFFSET_DATA[1, 0] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[1, 1] = new Vector3Int(1, 0, 0);
+        JLSTZ_OFFSET_DATA[1, 2] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[1, 3] = new Vector3Int(-1, 0, 0);
+
+        JLSTZ_OFFSET_DATA[2, 0] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[2, 1] = new Vector3Int(1, -1, 0);
+        JLSTZ_OFFSET_DATA[2, 2] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[2, 3] = new Vector3Int(-1, -1, 0);
+
+        JLSTZ_OFFSET_DATA[3, 0] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[3, 1] = new Vector3Int(0, 2, 0);
+        JLSTZ_OFFSET_DATA[3, 2] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[3, 3] = new Vector3Int(0, 2, 0);
+
+        JLSTZ_OFFSET_DATA[4, 0] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[4, 1] = new Vector3Int(1, 2, 0);
+        JLSTZ_OFFSET_DATA[4, 2] = new Vector3Int(0, 0, 0);
+        JLSTZ_OFFSET_DATA[4, 3] = new Vector3Int(-1, 2, 0);
+
+        I_OFFSET_DATA = new Vector3Int[5, 4];
+        I_OFFSET_DATA[0, 0] = new Vector3Int(0, 0, 0);
+        I_OFFSET_DATA[0, 1] = new Vector3Int(-1, 0, 0);
+        I_OFFSET_DATA[0, 2] = new Vector3Int(-1, 1, 0);
+        I_OFFSET_DATA[0, 3] = new Vector3Int(0, 1, 0);
+
+        I_OFFSET_DATA[1, 0] = new Vector3Int(-1, 0, 0);
+        I_OFFSET_DATA[1, 1] = new Vector3Int(0, 0, 0);
+        I_OFFSET_DATA[1, 2] = new Vector3Int(1, 1, 0);
+        I_OFFSET_DATA[1, 3] = new Vector3Int(0, 1, 0);
+
+        I_OFFSET_DATA[2, 0] = new Vector3Int(2, 0, 0);
+        I_OFFSET_DATA[2, 1] = new Vector3Int(0, 0, 0);
+        I_OFFSET_DATA[2, 2] = new Vector3Int(-2, 1, 0);
+        I_OFFSET_DATA[2, 3] = new Vector3Int(0, 1, 0);
+
+        I_OFFSET_DATA[3, 0] = new Vector3Int(-1, 0, 0);
+        I_OFFSET_DATA[3, 1] = new Vector3Int(0, 1, 0);
+        I_OFFSET_DATA[3, 2] = new Vector3Int(1, 0, 0);
+        I_OFFSET_DATA[3, 3] = new Vector3Int(0, -1, 0);
+
+        I_OFFSET_DATA[4, 0] = new Vector3Int(2, 0, 0);
+        I_OFFSET_DATA[4, 1] = new Vector3Int(0, -2, 0);
+        I_OFFSET_DATA[4, 2] = new Vector3Int(-2, 0, 0);
+        I_OFFSET_DATA[4, 3] = new Vector3Int(0, 2, 0);
+
+        O_OFFSET_DATA = new Vector3Int[1, 4];
+        O_OFFSET_DATA[0, 0] = new Vector3Int(0, 0, 0);
+        O_OFFSET_DATA[0, 1] = new Vector3Int(0, -1, 0);
+        O_OFFSET_DATA[0, 2] = new Vector3Int(-1, -1, 0);
+        O_OFFSET_DATA[0, 3] = new Vector3Int(-1, 0, 0);
+
         // 바닥에 닿을 경우 처리
         for (int i = 0; i < boardHeight; ++i)
         {
@@ -48,8 +116,10 @@ public class Stage : MonoBehaviour
             col.transform.parent = boardNode;// 보드노드의 자식으로 만들어 줌
         }
         block_num = Random.Range(0, 7); //0부터 6까지 중 하나의 숫자가 임의로 출현
+        while (tetrominoCycle[block_num] == false) block_num = Random.Range(0, 7);
         MakeBlock(block_num);
         block_num = Random.Range(0, 7); //0부터 6까지 중 하나의 숫자가 임의로 출현
+        while (tetrominoCycle[block_num] == false) block_num = Random.Range(0, 7);
     }
 
     void Update() //실시간 이동
@@ -76,11 +146,18 @@ public class Stage : MonoBehaviour
             }
             else if (Input.GetKeyDown(KeyCode.UpArrow)) //위 화살표를 누르면
             {
+                isClockwise = true; //시계방향
+                isRotate = true; //회전
+            }
+            else if (Input.GetKeyDown(KeyCode.X)) //X를 누르면
+            {
+                isClockwise = false; //반시계방향
                 isRotate = true; //회전
             }
             else if (Input.GetKeyDown(KeyCode.DownArrow)) //아래 화살표를 누르면
             {
                 b.y = -1; //아래 방향으로 이동
+                nextFallTime = Time.time + fallTime;
             }
 
             //// Add New Function
@@ -128,6 +205,37 @@ public class Stage : MonoBehaviour
         }
         return true;
     }
+    bool OffsetTest()
+    {
+        var node = tetrominoNode;
+        Vector3Int offset1, offset2;
+        Vector3Int[,] offset;
+
+        if (index == 0) offset = I_OFFSET_DATA; //I블록을 위한 별도의 offset
+        else if (index == 2) offset = O_OFFSET_DATA;    //o블록을 위한 별도의 offset
+        else offset = JLSTZ_OFFSET_DATA;    //나머지 블록을 위한 공통의 offset
+
+        if (isClockwise) node.transform.rotation *= Quaternion.Euler(0, 0, -90);
+        else node.transform.rotation *= Quaternion.Euler(0, 0, 90);
+
+        for (int i = 0; i < (index == 2 ? 1 : 5); i++)
+        {
+            offset1 = offset[i, oldrotindex];
+            offset2 = offset[i, newrotindex];
+
+            node.transform.position += offset1 - offset2;
+            if (!Border(node))
+            {
+                node.transform.position += offset2 - offset1;
+            }
+            else
+            {
+                tetrominoNode = node;
+                return true;
+            }
+        }
+        return false;
+    }
 
     bool MoveBlock(Vector3 moveblock, bool isRotate) // 블록의 움직임이 가능하면 true, 그렇지 않으면 false
     {
@@ -137,7 +245,30 @@ public class Stage : MonoBehaviour
         tetrominoNode.transform.position += moveblock;
         if (isRotate)
         {
-            tetrominoNode.transform.rotation *= Quaternion.Euler(0, 0, 90);
+            if (isClockwise)
+            {
+                if (newrotindex == 3) newrotindex = 0;
+                else newrotindex++;
+
+                if (!OffsetTest())
+                {
+                    tetrominoNode.transform.rotation *= Quaternion.Euler(0, 0, 90);
+                    newrotindex = oldrotindex;
+                }
+                else oldrotindex = newrotindex;
+            }
+            else
+            {
+                if (newrotindex == 0) newrotindex = 3;
+                else newrotindex--;
+
+                if (!OffsetTest())
+                {
+                    tetrominoNode.transform.rotation *= Quaternion.Euler(0, 0, -90);
+                    newrotindex = oldrotindex;
+                }
+                else oldrotindex = newrotindex;
+            }
         }
         if (!Border(tetrominoNode))
         {
@@ -148,9 +279,12 @@ public class Stage : MonoBehaviour
             {
                 AddToBoard(tetrominoNode);
                 ClearBlock();
+                oldrotindex = 0;
+                newrotindex = 0;
 
                 MakeBlock(block_num);
                 block_num = Random.Range(0, 7); //0부터 6까지 중 하나의 숫자가 임의로 출현
+                while (tetrominoCycle[block_num] == false) block_num = Random.Range(0, 7);
             }
 
             if (!Border(tetrominoNode))
@@ -287,7 +421,14 @@ public class Stage : MonoBehaviour
     // 3. 블록 생성하기
     void MakeBlock(int blkno)
     {
-        int index = block_num;
+        index = block_num;
+        tetrominoCycle[index] = false; tetrominoCycleCount++;
+        if (tetrominoCycleCount == 7)
+        {
+            tetrominoCycleCount = 0;
+            for (int k = 0; k < 7; k++)
+                tetrominoCycle[k] = true;
+        }
         int bomb_pb = Random.Range(0, 100);
         Color32 color = Color.white;
         Color32 bomb_color = Color.black;
@@ -303,17 +444,17 @@ public class Stage : MonoBehaviour
                 color = new Color32(235, 51, 35, 255);
                 if (bomb_pb <= 1)
                 {
-                    MakeTile(tetrominoNode, new Vector2(-2f, 0.0f), color);
                     MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), color);
-                    MakeTile(tetrominoNode, new Vector2(0f, 0.0f), bomb_color);
-                    MakeTile(tetrominoNode, new Vector2(1f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(0f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(1f, 0.0f), bomb_color);
+                    MakeTile(tetrominoNode, new Vector2(2f, 0.0f), color);
                 }
                 else
                 {
-                    MakeTile(tetrominoNode, new Vector2(-2f, 0.0f), color);
                     MakeTile(tetrominoNode, new Vector2(-1f, 0.0f), color);
                     MakeTile(tetrominoNode, new Vector2(0f, 0.0f), color);
                     MakeTile(tetrominoNode, new Vector2(1f, 0.0f), color);
+                    MakeTile(tetrominoNode, new Vector2(2f, 0.0f), color);
                 }
                 break;
 
